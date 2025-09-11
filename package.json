@@ -20,6 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@keyv/redis": "^4.5.0",
+    "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -27,10 +29,15 @@
     "@nestjs/platform-fastify": "^11.1.6",
     "@nestjs/throttler": "^6.4.0",
     "@prisma/client": "6.5.0",
+    "@types/uuid": "^10.0.0",
+    "cache-manager": "^7.2.0",
+    "cache-manager-redis-store": "^3.0.1",
+    "keyv": "^5.5.1",
     "nest-winston": "^1.10.2",
     "prisma": "6.5.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "uuid": "^13.0.0",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0"
   },
