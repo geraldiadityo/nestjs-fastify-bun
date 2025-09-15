@@ -50,7 +50,8 @@ import { JwtModule } from '@nestjs/jwt';
         }
     ],
     exports: [
-        PrismaService
+        PrismaService,
+        keyvProvider
     ]
 })
 export class CommonModule {}

@@ -277,7 +277,7 @@ model petugas_ruangan {
 
 model profesi {
   id      Int       @id @default(autoincrement())
-  nama    String
+  nama    String    @unique
   pegawai pegawai[]
 }
 
