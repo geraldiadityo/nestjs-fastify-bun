@@ -6,7 +6,8 @@ import { PrismaService } from "./prisma.service";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { APP_FILTER, APP_GUARD } from "@nestjs/core";
 import { ErrorFilter } from "src/utils/error.filter";
-
+import { keyvProvider } from "./keyv.provider";
+import { JwtModule } from '@nestjs/jwt';
 @Global()
 @Module({
     imports: [
@@ -22,9 +23,23 @@ import { ErrorFilter } from "src/utils/error.filter";
         ConfigModule.forRoot({
             isGlobal: true
         }),
+        JwtModule.registerAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: async (configService: ConfigService) => {
+                const secret = configService.get<string>('JWT_SECRET_KEY');
+                return {
+                    secret: secret,
+                    signOptions: {
+                        expiresIn: `${configService.get<number>('JWT_EXPIRATION_TIME')}`
+                    }
+                }
+            }
+        }),
     ],
     providers: [
         PrismaService,
+        keyvProvider,
         {
             provide: APP_GUARD,
             useClass: ThrottlerGuard
