@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -15,8 +9,462 @@ datasource db {
 
 model Opsional {
   id    Int    @id @default(autoincrement())
-  name  String @unique
+  name  String
   value String
+}
 
-  @@map("optional")
+model akses {
+  id             Int              @id
+  nama_module    String
+  pengguna_akses pengguna_akses[]
+}
+
+model barang {
+  id                   Int                    @id @default(autoincrement())
+  kode_barang          String
+  nama_barang          String
+  tipeId               Int?
+  kategoriId           Int?
+  satuanId             Int?
+  created_at           DateTime               @default(now())
+  updated_at           DateTime
+  kategori_barang      kategori_barang?       @relation(fields: [kategoriId], references: [id])
+  satuan_barang        satuan_barang?         @relation(fields: [satuanId], references: [id])
+  tipe_barang          tipe_barang?           @relation(fields: [tipeId], references: [id])
+  batch_barang         batch_barang[]
+  opaname_barang       opaname_barang[]
+  order_detail_farmasi order_detail_farmasi[]
+  penjualan_detail     penjualan_detail[]
+  stok_barang          stok_barang[]
+  tindakan_barang      tindakan_barang[]
+  transaksi_barang     transaksi_barang[]
+}
+
+model batch_barang {
+  nomor                String                 @id @unique
+  transaksiId          Int?
+  barangId             Int?
+  stok                 Int
+  harga                Int
+  harga_beli           Int
+  expired_date         DateTime
+  notification         DateTime
+  created_at           DateTime               @default(now())
+  updated_at           DateTime
+  status               Boolean                @default(false)
+  barang               barang?                @relation(fields: [barangId], references: [id])
+  transaksi            transaksi?             @relation(fields: [transaksiId], references: [id], onDelete: Cascade)
+  opaname_barang       opaname_barang[]
+  order_detail_farmasi order_detail_farmasi[]
+  penjualan_detail     penjualan_detail[]
+  stok_barang          stok_barang[]
+  transaksi_barang     transaksi_barang[]
+}
+
+model dokter {
+  id             Int              @id @default(autoincrement())
+  pegawaiId      Int?
+  status         Boolean          @default(true)
+  pegawai        pegawai?         @relation(fields: [pegawaiId], references: [id], onDelete: Cascade)
+  dokter_ruangan dokter_ruangan[]
+  jadwal_dokter  jadwal_dokter[]
+  order_farmasi  order_farmasi[]
+  soap           soap[]
+  tujuan         tujuan[]
+}
+
+model dokter_ruangan {
+  id        Int      @id @default(autoincrement())
+  ruanganid Int?
+  dokterId  Int?
+  dokter    dokter?  @relation(fields: [dokterId], references: [id], onDelete: Cascade)
+  ruangan   ruangan? @relation(fields: [ruanganid], references: [id], onDelete: Cascade)
+}
+
+model icds {
+  kode_icd      String @id
+  nama_icd      String
+  nama_icd_indo String
+}
+
+model jadwal_dokter {
+  id          Int     @id @default(autoincrement())
+  dokterId    Int?
+  hari        String
+  jam_mulai   String
+  jam_selesai String
+  dokter      dokter? @relation(fields: [dokterId], references: [id], onDelete: Cascade)
+}
+
+model kategori_barang {
+  id     Int      @id @default(autoincrement())
+  nama   String
+  barang barang[]
+}
+
+model kunjungan {
+  nomor                String                 @id @unique
+  nopen                String?
+  ruanganId            Int?
+  masuk                DateTime
+  status               Int
+  pendaftaran          pendaftaran?           @relation(fields: [nopen], references: [nomor], onDelete: Cascade)
+  ruangan              ruangan?               @relation(fields: [ruanganId], references: [id], onDelete: Cascade)
+  order_detail_farmasi order_detail_farmasi[]
+  order_farmasi        order_farmasi[]
+  rekam_medis          rekam_medis?
+  soap                 soap?
+  tekanan_darah        tekanan_darah?
+  tindakan_medis       tindakan_medis[]
+  transaksi_layanan    transaksi_layanan?
+}
+
+model opaname_barang {
+  id           Int           @id @default(autoincrement())
+  opnameId     Int
+  barangId     Int?
+  no_batch     String?
+  quantity     Int
+  tanggal      DateTime
+  barang       barang?       @relation(fields: [barangId], references: [id])
+  batch_barang batch_barang? @relation(fields: [no_batch], references: [nomor], onDelete: Cascade)
+  opname       opname        @relation(fields: [opnameId], references: [id], onDelete: Cascade)
+}
+
+model opname {
+  id             Int              @id @default(autoincrement())
+  opname_id      String
+  tanggal        DateTime
+  created_at     DateTime         @default(now())
+  updated_at     DateTime
+  status         Boolean          @default(false)
+  opaname_barang opaname_barang[]
+}
+
+model order_detail_farmasi {
+  id            Int            @id @default(autoincrement())
+  no_order      String?
+  no_kunjungan  String?
+  obatId        Int?
+  no_batch      String?
+  jumlah        Int
+  cara          String
+  cetak         Boolean        @default(false)
+  tanggal       DateTime
+  batch_barang  batch_barang?  @relation(fields: [no_batch], references: [nomor], onDelete: Cascade)
+  kunjungan     kunjungan?     @relation(fields: [no_kunjungan], references: [nomor], onDelete: Cascade)
+  order_farmasi order_farmasi? @relation(fields: [no_order], references: [nomor], onDelete: Cascade)
+  barang        barang?        @relation(fields: [obatId], references: [id], onDelete: Cascade)
+}
+
+model order_farmasi {
+  nomor                String                 @id @unique
+  no_kunjungan         String?
+  oleh                 Int?
+  status               Boolean                @default(false)
+  tanggal              DateTime
+  order_detail_farmasi order_detail_farmasi[]
+  kunjungan            kunjungan?             @relation(fields: [no_kunjungan], references: [nomor], onDelete: Cascade)
+  dokter               dokter?                @relation(fields: [oleh], references: [id], onDelete: Cascade)
+}
+
+model pasien {
+  norm            String           @id @unique
+  nik             String           @unique
+  nama_pasien     String
+  jenis_kelamin   String
+  alamat          String
+  tanggal_lahir   DateTime
+  status          Boolean          @default(true)
+  created_at      DateTime         @default(now())
+  updated_at      DateTime
+  pendaftaran     pendaftaran[]
+  pengguna_pasien pengguna_pasien?
+}
+
+model pegawai {
+  id                Int               @id @default(autoincrement())
+  nk                String            @unique
+  nik               String            @unique
+  nama_lengkap      String
+  profesiId         Int?
+  smfId             Int?
+  status            Boolean           @default(true)
+  no_str            String?
+  no_sip            String?
+  tanggal_izin      DateTime?
+  tanggal_akhir_sip DateTime?
+  created_at        DateTime          @default(now())
+  updated_at        DateTime
+  dokter            dokter[]
+  profesi           profesi?          @relation(fields: [profesiId], references: [id])
+  smf               smf?              @relation(fields: [smfId], references: [id])
+  pengguna          pengguna[]
+  petugas_ruangan   petugas_ruangan[]
+  tindakan_medis    tindakan_medis[]
+}
+
+model pendaftaran {
+  nomor     String      @id @unique
+  norm      String?
+  tanggal   DateTime
+  kunjungan kunjungan[]
+  pasien    pasien?     @relation(fields: [norm], references: [norm])
+  tujuan    tujuan[]
+}
+
+model pengguna {
+  id             Int              @id @default(autoincrement())
+  username       String           @unique
+  password       String
+  pegawaiIid     Int?
+  status         Boolean          @default(true)
+  created_at     DateTime         @default(now())
+  updated_at     DateTime
+  pegawai        pegawai?         @relation(fields: [pegawaiIid], references: [id])
+  pengguna_akses pengguna_akses[]
+}
+
+model pengguna_akses {
+  id         Int      @id @default(autoincrement())
+  penggunaId Int
+  aksesId    Int
+  akses      akses    @relation(fields: [aksesId], references: [id])
+  pengguna   pengguna @relation(fields: [penggunaId], references: [id])
+}
+
+model pengguna_pasien {
+  id       Int     @id @unique @default(autoincrement())
+  email    String  @unique
+  username String  @unique
+  password String
+  nik      String? @unique
+  status   Boolean @default(true)
+  pasien   pasien? @relation(fields: [nik], references: [nik], onDelete: Cascade)
+}
+
+model penjualan {
+  invoice          String             @id @unique
+  tanggal          DateTime
+  totalHarga       Int
+  diskon           Int
+  totalBayar       Int
+  uang_tunai       Int
+  kembalian        Int
+  penjualan_detail penjualan_detail[]
+}
+
+model penjualan_detail {
+  id           Int           @id @default(autoincrement())
+  no_invoice   String?
+  idBarang     Int?
+  no_batch     String?
+  qty          Int
+  total        Int
+  tanggal      DateTime
+  barang       barang?       @relation(fields: [idBarang], references: [id], onDelete: Cascade)
+  batch_barang batch_barang? @relation(fields: [no_batch], references: [nomor], onDelete: Cascade)
+  penjualan    penjualan?    @relation(fields: [no_invoice], references: [invoice], onDelete: Cascade)
+}
+
+model petugas_ruangan {
+  id        Int      @id @default(autoincrement())
+  ruanganId Int?
+  petugasId Int?
+  pegawai   pegawai? @relation(fields: [petugasId], references: [id], onDelete: Cascade)
+  ruangan   ruangan? @relation(fields: [ruanganId], references: [id], onDelete: Cascade)
+}
+
+model profesi {
+  id      Int       @id @default(autoincrement())
+  nama    String
+  pegawai pegawai[]
+}
+
+model rekam_medis {
+  id           Int        @id @default(autoincrement())
+  kunjungan_no String?    @unique
+  tinggi_badan Float?
+  berat_badan  Float?
+  suhu         Float?
+  anamnesa     String
+  icd          String
+  nadi         Int
+  diagnosa     String
+  tanggal      DateTime
+  kunjungan    kunjungan? @relation(fields: [kunjungan_no], references: [nomor], onDelete: Cascade)
+}
+
+model ruangan {
+  id               Int                @id @default(autoincrement())
+  nama_ruangan     String
+  status           Boolean            @default(true)
+  created_at       DateTime           @default(now())
+  updated_at       DateTime
+  dokter_ruangan   dokter_ruangan[]
+  kunjungan        kunjungan[]
+  petugas_ruangan  petugas_ruangan[]
+  tindakan_ruangan tindakan_ruangan[]
+  tujuan           tujuan[]
+}
+
+model satuan_barang {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  deskripsi String?
+  barang    barang[]
+}
+
+model smf {
+  id      Int       @id @default(autoincrement())
+  nama    String
+  pegawai pegawai[]
+}
+
+model soap {
+  id           Int        @id @default(autoincrement())
+  no_kunjungan String?    @unique
+  subjek       String
+  objek        String
+  assesment    String
+  plan         String
+  dokterId     Int?
+  tanggal      DateTime
+  dokter       dokter?    @relation(fields: [dokterId], references: [id], onDelete: Cascade)
+  kunjungan    kunjungan? @relation(fields: [no_kunjungan], references: [nomor], onDelete: Cascade)
+}
+
+model stok_barang {
+  id           Int           @id @default(autoincrement())
+  type_stok    String
+  barangId     Int?
+  no_batch     String?
+  quantity     Int
+  keterangan   String?
+  tanggal      DateTime
+  barang       barang?       @relation(fields: [barangId], references: [id])
+  batch_barang batch_barang? @relation(fields: [no_batch], references: [nomor], onDelete: Cascade)
+}
+
+model supplier {
+  id            Int         @id @default(autoincrement())
+  nama_supplier String
+  alamat        String
+  no_telp       String
+  keterangan    String
+  transaksi     transaksi[]
+}
+
+model tekanan_darah {
+  id           Int       @id @default(autoincrement())
+  kunjungan_no String    @unique
+  sistole      Int
+  diastole     Int
+  tanggal      DateTime
+  kunjungan    kunjungan @relation(fields: [kunjungan_no], references: [nomor], onDelete: Cascade)
+}
+
+model tindakan {
+  id               Int                @id @default(autoincrement())
+  nama_tindakan    String
+  harga_tindakan   Int
+  created_at       DateTime           @default(now())
+  updated_at       DateTime
+  status           Boolean            @default(true)
+  tindakan_barang  tindakan_barang[]
+  tindakan_medis   tindakan_medis[]
+  tindakan_ruangan tindakan_ruangan[]
+}
+
+model tindakan_barang {
+  id         Int       @id @default(autoincrement())
+  tindakanId Int?
+  barangId   Int?
+  barang     barang?   @relation(fields: [barangId], references: [id])
+  tindakan   tindakan? @relation(fields: [tindakanId], references: [id])
+}
+
+model tindakan_medis {
+  id           Int        @id @default(autoincrement())
+  kunjungan_no String?
+  tindakanid   Int?
+  tanggal      DateTime
+  status       Boolean    @default(true)
+  operator     Int?
+  harga        Int?
+  kunjungan    kunjungan? @relation(fields: [kunjungan_no], references: [nomor], onDelete: Cascade)
+  pegawai      pegawai?   @relation(fields: [operator], references: [id], onDelete: Cascade)
+  tindakan     tindakan?  @relation(fields: [tindakanid], references: [id], onDelete: Cascade, map: "tindakan_medis_tindakanId_fkey")
+}
+
+model tindakan_ruangan {
+  id         Int       @id @default(autoincrement())
+  ruanganId  Int?
+  tindakanId Int?
+  ruangan    ruangan?  @relation(fields: [ruanganId], references: [id], onDelete: Cascade)
+  tindakan   tindakan? @relation(fields: [tindakanId], references: [id], onDelete: Cascade)
+}
+
+model tipe_barang {
+  id        Int      @id @default(autoincrement())
+  nama_tipe String
+  barang    barang[]
+}
+
+model transaksi {
+  id                  Int                @id @default(autoincrement())
+  invoice             String             @unique
+  tanggal_faktur      DateTime
+  tanggal_terima      DateTime
+  tanggal_jatuh_tempo DateTime
+  supplierId          Int?
+  keterangan          String
+  total_harga         Int                @default(0)
+  status_bayar        Boolean            @default(false)
+  status              Boolean            @default(false)
+  created_at          DateTime           @default(now())
+  updated_at          DateTime
+  batch_barang        batch_barang[]
+  supplier            supplier?          @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  transaksi_barang    transaksi_barang[]
+}
+
+model transaksi_barang {
+  id           Int          @id @default(autoincrement())
+  transaksiId  Int?
+  barangId     Int
+  no_batch     String
+  quantity     Int
+  harga_beli   Int
+  harga_jual   Int
+  discount     Int          @default(0)
+  tanggal      DateTime
+  barang       barang       @relation(fields: [barangId], references: [id])
+  batch_barang batch_barang @relation(fields: [no_batch], references: [nomor], onDelete: Cascade)
+  transaksi    transaksi?   @relation(fields: [transaksiId], references: [id], onDelete: Cascade)
+}
+
+model transaksi_layanan {
+  nomor        String     @id @unique
+  no_kunjungan String?    @unique
+  tanggal      DateTime
+  total_beli   Int
+  total        Int
+  diskon       Int
+  totalBayar   Int
+  uang_tunai   Int
+  kembalian    Int
+  status       Boolean    @default(false)
+  kunjungan    kunjungan? @relation(fields: [no_kunjungan], references: [nomor], onDelete: Cascade)
+}
+
+model tujuan {
+  id          Int          @id @default(autoincrement())
+  nopen       String?
+  ruanganId   Int?
+  dokterId    Int?
+  status      Boolean      @default(false)
+  dokter      dokter?      @relation(fields: [dokterId], references: [id])
+  pendaftaran pendaftaran? @relation(fields: [nopen], references: [nomor])
+  ruangan     ruangan?     @relation(fields: [ruanganId], references: [id])
 }
