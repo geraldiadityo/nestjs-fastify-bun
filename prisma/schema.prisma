@@ -317,7 +317,7 @@ model satuan_barang {
 
 model smf {
   id      Int       @id @default(autoincrement())
-  nama    String
+  nama    String    @unique
   pegawai pegawai[]
 }
 
