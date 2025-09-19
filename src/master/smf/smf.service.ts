@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from "winston";
 import { SmfRepository } from "./smf.repository";
-import { smf } from "@prisma/client";
+import { Prisma, smf } from "@prisma/client";
 import { SmfCreateDTO, SmfResponse } from "./dto/smf.model";
 
 @Injectable()
@@ -21,10 +21,11 @@ export class SmfService {
     }
 
     async smfMustExist(
-        id: number
+        id: number,
+        tx?: Prisma.TransactionClient
     ): Promise<SmfResponse> {
         this.logger.debug(`searching smf with id: ${id}`,{context: this.ctx});
-        const data = await this.repo.findById(id);
+        const data = await this.repo.findById(id, tx);
 
         if(!data){
             this.logger.warn(`smf with id: ${id} is not found`,{context: this.ctx});

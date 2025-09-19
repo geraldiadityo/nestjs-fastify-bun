@@ -4,7 +4,7 @@ import { CacheRepository } from "src/common/cache.repository";
 import { PrismaService } from "src/common/prisma.service";
 import { Logger } from "winston";
 import { SmfCreateDTO } from "./dto/smf.model";
-import { smf } from "@prisma/client";
+import { Prisma, smf } from "@prisma/client";
 
 @Injectable()
 export class SmfRepository extends CacheRepository {
@@ -75,9 +75,11 @@ export class SmfRepository extends CacheRepository {
     }
 
     async findById(
-        id: number
+        id: number,
+        tx?: Prisma.TransactionClient
     ): Promise<smf | null>{
-        return await this.prisma.smf.findUnique({
+        const prismaClient = tx || this.prisma
+        return await prismaClient.smf.findUnique({
             where: {
                 id: id
             }

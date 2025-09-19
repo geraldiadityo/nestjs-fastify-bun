@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ProfesiRepository } from "./profesi.repository";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from "winston";
-import { profesi } from "@prisma/client";
+import { Prisma, profesi } from "@prisma/client";
 import { ProfesiCreateDTO, ProfesiResponse } from "./dto/profesi.model";
 
 @Injectable()
@@ -21,10 +21,11 @@ export class ProfesiService {
     }
 
     async profesiMustExits(
-        id: number
+        id: number,
+        tx?: Prisma.TransactionClient,
     ): Promise<ProfesiResponse> {
         this.logger.debug(`searching profesi with id: ${id}`,{context: this.ctx});
-        const data = await this.repo.findById(id);
+        const data = await this.repo.findById(id, tx);
 
         if(!data){
             this.logger.warn(`profesi with id: ${id} is not found`,{context: this.ctx});

@@ -4,8 +4,10 @@ import { Logger } from "winston";
 import { ProfesiService } from "../profesi/profesi.service";
 import { SmfService } from "../smf/smf.service";
 import { PegawaiRepository } from "./pegawai.repository";
-import { PegawaiResponse } from "./dto/pegawai.model";
+import { PegawaiCreateDTO, PegawaiCreateRequestDTO, PegawaiResponse } from "./dto/pegawai.model";
 import { Prisma } from "@prisma/client";
+import { PrismaService } from "src/common/prisma.service";
+import { GenerateNkPegawaiUseCase } from "./use-case/generarte-nk-pegawai.use-case";
 
 @Injectable()
 export class PegawaiService {
@@ -14,7 +16,10 @@ export class PegawaiService {
         @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
         private readonly repo: PegawaiRepository,
         private readonly profesiService: ProfesiService,
-        private readonly smfService: SmfService
+        private readonly smfService: SmfService,
+        private readonly prisma: PrismaService,
+
+        private readonly generateNk: GenerateNkPegawaiUseCase,
     ) {}
 
     private toPegawaiResponse(data: any): PegawaiResponse {
@@ -60,5 +65,47 @@ export class PegawaiService {
         }
 
         return this.toPegawaiResponse(data);
+    }
+
+    async createPegawai(
+        data: PegawaiCreateRequestDTO
+    ): Promise<PegawaiResponse> {
+        this.logger.info(`starting create data pegawai with nama: ${data.nama_lengkap}`,{context: this.ctx});
+        try {
+            const newPegawai = await this.prisma.$transaction(
+                async (tx) => {
+                    const checkNik = await this.getByNik(data.nik, tx);
+                    if (checkNik){
+                        this.logger.warn(`pegawai with nik: ${data.nik} is already exists`,{context: this.ctx});
+                        throw new HttpException('Nik has already exists', HttpStatus.BAD_REQUEST)
+                    }
+                    const profesi = await this.profesiService.profesiMustExits(data.profesiId);
+                    const smf = await this.smfService.smfMustExist(data.smfId);
+                    const newNk = await this.generateNk.execute(tx);
+                    const dataSender: PegawaiCreateDTO = {
+                        nk: newNk,
+                        nik: data.nik,
+                        nama_lengkap: data.nama_lengkap,
+                        profesiId: profesi.id,
+                        smfId: smf.id,
+                    }
+
+                    if (profesi.nama !== 'Administrator'){
+                        dataSender.no_sip = data.no_sip;
+                        dataSender.no_str = data.no_str;
+                        dataSender.tanggal_izin = data.tanggal_izin ? new Date(data.tanggal_izin) : undefined;
+                        dataSender.tanggal_akhir_sip = data.tanggal_akhir_sip ? new Date(data.tanggal_akhir_sip) : undefined;
+                    }
+
+                    const newPegawai = await this.repo.create(dataSender, tx);
+                    return newPegawai
+                }
+            )
+
+            return this.toPegawaiResponse(newPegawai);
+        } catch (err){
+            this.logger.error(`something error with data in server: ${err.message}`,{context: this.ctx});
+            throw new HttpException('Something error with server', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

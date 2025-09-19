@@ -4,7 +4,7 @@ import { CacheRepository } from "src/common/cache.repository";
 import { PrismaService } from "src/common/prisma.service";
 import { Logger } from "winston";
 import { ProfesiCreateDTO } from "./dto/profesi.model";
-import { profesi } from "@prisma/client";
+import { Prisma, profesi } from "@prisma/client";
 
 @Injectable()
 export class ProfesiRepository extends CacheRepository {
@@ -76,9 +76,11 @@ export class ProfesiRepository extends CacheRepository {
     }
 
     async findById(
-        id: number
+        id: number,
+        tx?: Prisma.TransactionClient
     ): Promise<profesi | null>{
-        return await this.prisma.profesi.findUnique({
+        const prismaClient = tx || this.prisma;
+        return await prismaClient.profesi.findUnique({
             where: {
                 id: id
             }
