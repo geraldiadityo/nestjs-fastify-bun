@@ -63,7 +63,7 @@ model batch_barang {
 
 model dokter {
   id             Int              @id @default(autoincrement())
-  pegawaiId      Int?
+  pegawaiId      Int              @unique
   status         Boolean          @default(true)
   pegawai        pegawai?         @relation(fields: [pegawaiId], references: [id], onDelete: Cascade)
   dokter_ruangan dokter_ruangan[]

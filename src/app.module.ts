@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { CommonModule } from './common/common.module';
 import { ProfesiModule } from './master/profesi/profesi.module';
 import { SmfModule } from './master/smf/smf.module';
+import { PegawaiModule } from './master/pegawai/pegawai.module';
+import { DokterModule } from './master/dokter/dokter.module';
 
 @Module({
   imports: [
@@ -9,7 +11,9 @@ import { SmfModule } from './master/smf/smf.module';
     CommonModule,
     // master data
     ProfesiModule,
-    SmfModule
+    SmfModule,
+    DokterModule,
+    PegawaiModule
   ],
   controllers: [],
   providers: [],
